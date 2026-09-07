@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "HealthScreen Mobile",
+    "slug": "healthscreen-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#047857"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#047857"
+      }
+    }
+  }
+}

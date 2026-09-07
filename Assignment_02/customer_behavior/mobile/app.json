@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "CSAT Care Mobile",
+    "slug": "csat-care-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#4338ca"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#4338ca"
+      }
+    }
+  }
+}

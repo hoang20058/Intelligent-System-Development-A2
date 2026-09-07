@@ -40,3 +40,12 @@ desktop.ini
 scratch/
 ~$*
 *.tmp
+
+# Mobile App & Node dependencies
+node_modules/
+.expo/
+dist/
+web-build/
+
+# Old submit directory (migrated to Assignment_02)
+A2_Submit/

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự đoán Bệnh Tiểu đường — App1</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success-bg: #d1fae5;
+            --danger-bg: #fee2e2;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .card-header-custom {
+            background: linear-gradient(135deg, var(--primary), #3a0ca3);
+            padding: 1.5rem 2rem;
+            color: white;
+        }
+        .card-header-custom h3 {
+            margin: 0;
+            font-weight: 700;
+        }
+        .card-header-custom p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.85;
+            font-size: 0.95rem;
+        }
+        .card-body { padding: 2rem; }
+        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            padding: 0.6rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+        .btn-predict {
+            background: linear-gradient(135deg, var(--primary), #3a0ca3);
+            border: none;
+            border-radius: 12px;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+            color: white;
+        }
+        .btn-predict:disabled {
+            opacity: 0.7;
+            transform: none;
+        }
+        .result-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-positive {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-left: 5px solid #ef4444;
+        }
+        .result-negative {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border-left: 5px solid #10b981;
+        }
+        .result-icon { font-size: 3rem; }
+        .confidence-bar {
+            height: 12px;
+            border-radius: 6px;
+            background: #e5e7eb;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1s ease;
+        }
+        .section-divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0 1rem 0;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            margin-left: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .spinner-border { width: 1.2rem; height: 1.2rem; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+
+                <!-- Main Card -->
+                <div class="card main-card">
+                    <div class="card-header-custom">
+                        <h3><i class="fas fa-heartbeat me-2"></i> Dự đoán Nguy cơ Tiểu đường</h3>
+                        <p>Nhập thông tin lâm sàng bệnh nhân để nhận kết quả dự đoán với độ tin cậy</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="predictionForm">
+
+                            <!-- Nhân khẩu học -->
+                            <div class="section-divider"><i class="fas fa-user me-2"></i> THÔNG TIN NHÂN KHẨU</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Giới tính</label>
+                                    <select class="form-select" id="gender" required>
+                                        <option value="Female">Nữ (Female)</option>
+                                        <option value="Male">Nam (Male)</option>
+                                        <option value="Other">Khác (Other)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tuổi</label>
+                                    <input type="number" class="form-control" id="age" min="0" max="120" value="45" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Chủng tộc</label>
+                                    <select class="form-select" id="race" required>
+                                        <option value="Caucasian">Caucasian</option>
+                                        <option value="AfricanAmerican">African American</option>
+                                        <option value="Asian">Asian</option>
+                                        <option value="Hispanic">Hispanic</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Chỉ số y tế -->
+                            <div class="section-divider mt-4"><i class="fas fa-stethoscope me-2"></i> CHỈ SỐ Y TẾ</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">BMI</label>
+                                    <input type="number" step="0.1" class="form-control" id="bmi" min="10" max="60" value="27.5" required>
+                                    <small class="text-muted">Bình thường: 18.5–24.9</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">HbA1c (%)</label>
+                                    <input type="number" step="0.1" class="form-control" id="hbA1c_level" min="0" max="15" value="5.5" required>
+                                    <small class="text-muted">Bình thường: &lt; 5.7%</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Đường huyết (mg/dL)</label>
+                                    <input type="number" class="form-control" id="blood_glucose_level" min="30" max="500" value="100" required>
+                                    <small class="text-muted">Bình thường: &lt; 100</small>
+                                </div>
+                            </div>
+
+                            <!-- Tiền sử bệnh -->
+                            <div class="section-divider mt-4"><i class="fas fa-notes-medical me-2"></i> TIỀN SỬ BỆNH LÝ</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tăng huyết áp</label>
+                                    <select class="form-select" id="hypertension" required>
+                                        <option value="0">Không</option>
+                                        <option value="1">Có</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Bệnh tim</label>
+                                    <select class="form-select" id="heart_disease" required>
+                                        <option value="0">Không</option>
+                                        <option value="1">Có</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tiền sử hút thuốc</label>
+                                    <select class="form-select" id="smoking_history" required>
+                                        <option value="never">Chưa bao giờ</option>
+                                        <option value="former">Đã bỏ</option>
+                                        <option value="current">Đang hút</option>
+                                        <option value="not current">Hiện không</option>
+                                        <option value="ever">Đã từng</option>
+                                        <option value="No Info">Không rõ</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-predict" id="submitBtn">
+                                    <i class="fas fa-search-plus me-2"></i> Dự đoán
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Result Card -->
+                <div id="resultCard" class="card result-card mt-4" style="display: none;">
+                    <div class="card-body p-4" id="resultBody">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="text-center mt-3 text-white-50" style="font-size: 0.85rem;">
+                    <p>Assignment 02 — Phát triển Hệ thống Thông minh | App1: Diabetes Classification</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang phân tích...';
+
+            const payload = {
+                gender: document.getElementById('gender').value,
+                age: parseInt(document.getElementById('age').value),
+                hypertension: parseInt(document.getElementById('hypertension').value),
+                heart_disease: parseInt(document.getElementById('heart_disease').value),
+                smoking_history: document.getElementById('smoking_history').value,
+                bmi: parseFloat(document.getElementById('bmi').value),
+                hbA1c_level: parseFloat(document.getElementById('hbA1c_level').value),
+                blood_glucose_level: parseInt(document.getElementById('blood_glucose_level').value),
+                race: document.getElementById('race').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Lỗi server');
+                }
+
+                const result = await response.json();
+                showResult(result);
+
+            } catch (error) {
+                document.getElementById('resultCard').style.display = 'block';
+                document.getElementById('resultCard').className = 'card result-card mt-4';
+                document.getElementById('resultBody').innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p class="fw-bold">Lỗi: ${error.message}</p>
+                    </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search-plus me-2"></i> Dự đoán';
+            }
+        });
+
+        function showResult(result) {
+            const card = document.getElementById('resultCard');
+            const body = document.getElementById('resultBody');
+            const isPositive = result.prediction === 1;
+
+            card.style.display = 'block';
+            card.className = `card result-card mt-4 ${isPositive ? 'result-positive' : 'result-negative'}`;
+
+            const icon = isPositive ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            const iconColor = isPositive ? '#ef4444' : '#10b981';
+            const barColor = isPositive ? '#ef4444' : '#10b981';
+
+            body.innerHTML = `
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <i class="fas ${icon} result-icon" style="color: ${iconColor}"></i>
+                    </div>
+                    <div class="col">
+                        <h4 class="mb-1 fw-bold">${result.label}</h4>
+                        <p class="mb-0 text-muted">Model: ${result.model_used}</p>
+                    </div>
+                    <div class="col-auto text-end">
+                        <div class="fw-bold" style="font-size: 2rem; color: ${iconColor}">
+                            ${result.confidence}%
+                        </div>
+                        <small class="text-muted">Độ tin cậy</small>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between">
+                            <span>Không bệnh</span>
+                            <span class="fw-bold">${result.probabilities.khong_benh}%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${result.probabilities.khong_benh}%; background: #10b981;"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between">
+                            <span>Có bệnh</span>
+                            <span class="fw-bold">${result.probabilities.co_benh}%</span>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${result.probabilities.co_benh}%; background: #ef4444;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 p-2 rounded" style="background: rgba(0,0,0,0.05); font-size: 0.85rem;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <em>Kết quả chỉ mang tính tham khảo. Vui lòng tham vấn bác sĩ chuyên khoa để có chẩn đoán chính xác.</em>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

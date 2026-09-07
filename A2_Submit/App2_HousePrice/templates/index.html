@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Du doan Gia Nha - App2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a5276 0%, #2e86c1 50%, #1abc9c 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-card {
+            border: none; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .card-header-custom {
+            background: linear-gradient(135deg, #1a5276, #154360);
+            padding: 1.5rem 2rem; color: white;
+        }
+        .card-header-custom h3 { margin: 0; font-weight: 700; }
+        .card-header-custom p { margin: 0.5rem 0 0; opacity: 0.85; font-size: 0.95rem; }
+        .card-body { padding: 2rem; }
+        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; }
+        .form-control, .form-select {
+            border-radius: 10px; border: 2px solid #e5e7eb;
+            padding: 0.6rem 1rem; transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #1a5276; box-shadow: 0 0 0 3px rgba(26,82,118,0.15);
+        }
+        .btn-predict {
+            background: linear-gradient(135deg, #1a5276, #154360);
+            border: none; border-radius: 12px; padding: 0.8rem 2rem;
+            font-size: 1.1rem; font-weight: 600; color: white;
+            transition: all 0.3s ease; width: 100%;
+        }
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(26,82,118,0.4); color: white;
+        }
+        .result-card {
+            border: none; border-radius: 16px; overflow: hidden;
+            animation: slideUp 0.5s ease;
+            background: linear-gradient(135deg, #d5f5e3, #a9dfbf);
+            border-left: 5px solid #27ae60;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .price-display {
+            font-size: 2.5rem; font-weight: 800;
+            color: #1a5276; letter-spacing: -1px;
+        }
+        .section-divider {
+            display: flex; align-items: center;
+            margin: 1.5rem 0 1rem; color: #6b7280;
+            font-weight: 600; font-size: 0.85rem;
+        }
+        .section-divider::after {
+            content: ''; flex: 1; margin-left: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="card main-card">
+                    <div class="card-header-custom">
+                        <h3><i class="fas fa-home me-2"></i> Du doan Gia Bat dong san</h3>
+                        <p>Nhap thong tin bat dong san de nhan gia du doan tu mo hinh Machine Learning</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <div class="section-divider"><i class="fas fa-ruler-combined me-2"></i> THONG TIN VAT LY</div>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Phong ngu (bed)</label>
+                                    <input type="number" class="form-control" id="bed" min="1" max="10" value="3" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Phong tam (bath)</label>
+                                    <input type="number" class="form-control" id="bath" min="1" max="10" value="2" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Dien tich (sqft)</label>
+                                    <input type="number" class="form-control" id="house_size" min="100" max="10000" value="1800" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Dat (acre)</label>
+                                    <input type="number" step="0.01" class="form-control" id="acre_lot" min="0" max="10" value="0.25" required>
+                                </div>
+                            </div>
+
+                            <div class="section-divider mt-4"><i class="fas fa-map-marker-alt me-2"></i> VI TRI</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Bang (State)</label>
+                                    <select class="form-select" id="state" required>
+                                        {% for s in states %}
+                                        <option value="{{ s }}" {% if s == "California" %}selected{% endif %}>{{ s }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Trang thai</label>
+                                    <select class="form-select" id="status" required>
+                                        <option value="for_sale">Dang ban (For Sale)</option>
+                                        <option value="sold">Da ban (Sold)</option>
+                                        <option value="ready_to_build">San sang xay (Ready to Build)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-predict" id="submitBtn">
+                                    <i class="fas fa-calculator me-2"></i> Du doan Gia
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="resultCard" class="card result-card mt-4" style="display: none;">
+                    <div class="card-body p-4" id="resultBody"></div>
+                </div>
+
+                <div class="text-center mt-3 text-white-50" style="font-size: 0.85rem;">
+                    <p>Assignment 02 — App2: House Price Prediction</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Dang phan tich...';
+
+            const payload = {
+                bed: parseInt(document.getElementById('bed').value),
+                bath: parseInt(document.getElementById('bath').value),
+                house_size: parseFloat(document.getElementById('house_size').value),
+                acre_lot: parseFloat(document.getElementById('acre_lot').value),
+                state: document.getElementById('state').value,
+                status: document.getElementById('status').value,
+                city: ""
+            };
+
+            try {
+                const resp = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) throw new Error('Server error');
+                const result = await resp.json();
+
+                document.getElementById('resultCard').style.display = 'block';
+                document.getElementById('resultBody').innerHTML = `
+                    <div class="text-center">
+                        <p class="text-muted mb-1">Gia du doan</p>
+                        <div class="price-display">${result.formatted}</div>
+                        <p class="mt-2 text-muted"><small>Model: ${result.model_used}</small></p>
+                        <div class="mt-3 p-2 rounded" style="background: rgba(0,0,0,0.05); font-size: 0.85rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <em>Gia du doan mang tinh tham khao. Gia thuc te phu thuoc vao nhieu yeu to khac nhu tinh trang nha, noi that, va dieu kien thi truong.</em>
+                        </div>
+                    </div>`;
+            } catch (error) {
+                document.getElementById('resultCard').style.display = 'block';
+                document.getElementById('resultBody').innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p class="fw-bold">Loi: ${error.message}</p>
+                    </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-calculator me-2"></i> Du doan Gia';
+            }
+        });
+    </script>
+</body>
+</html>

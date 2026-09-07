@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự đoán Mức độ Hài lòng Khách hàng — App3</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-card {
+            border: none; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            overflow: hidden; background: #fff;
+        }
+        .card-header-custom {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            padding: 1.5rem 2rem; color: white;
+        }
+        .card-header-custom h3 { margin: 0; font-weight: 700; }
+        .card-header-custom p { margin: 0.5rem 0 0; opacity: 0.85; font-size: 0.95rem; }
+        .card-body { padding: 2rem; }
+        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; }
+        .form-control, .form-select {
+            border-radius: 10px; border: 2px solid #e5e7eb;
+            padding: 0.6rem 1rem; transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #0f3460; box-shadow: 0 0 0 3px rgba(15,52,96,0.15);
+        }
+        .btn-predict {
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            border: none; border-radius: 12px; padding: 0.8rem 2rem;
+            font-size: 1.1rem; font-weight: 600; color: white;
+            transition: all 0.3s ease; width: 100%;
+        }
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(15,52,96,0.4); color: white;
+        }
+        .result-satisfied {
+            background: linear-gradient(135deg, #d5f5e3, #a9dfbf);
+            border-left: 5px solid #27ae60;
+        }
+        .result-at-risk {
+            background: linear-gradient(135deg, #fadbd8, #f1948a);
+            border-left: 5px solid #e74c3c;
+        }
+        .result-card {
+            border: none; border-radius: 16px; overflow: hidden;
+            animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-icon { font-size: 3rem; }
+        .section-divider {
+            display: flex; align-items: center;
+            margin: 1.5rem 0 1rem; color: #6b7280;
+            font-weight: 600; font-size: 0.85rem;
+        }
+        .section-divider::after {
+            content: ''; flex: 1; margin-left: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        textarea.form-control { min-height: 80px; resize: vertical; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="card main-card">
+                    <div class="card-header-custom">
+                        <h3><i class="fas fa-headset me-2"></i> Dự đoán Mức độ Hài lòng Khách hàng (CSAT)</h3>
+                        <p>Nhập thông tin tương tác hỗ trợ để nhận diện sớm nguy cơ khách hàng không hài lòng</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <div class="section-divider"><i class="fas fa-cogs me-2"></i> THÔNG TIN VẬN HÀNH</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Kênh liên hệ</label>
+                                    <select class="form-select" id="channel" required>
+                                        {% for c in channels %}
+                                        <option value="{{ c }}" {% if c == "Inbound" %}selected{% endif %}>{{ c }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Danh mục sự cố</label>
+                                    <select class="form-select" id="category" required>
+                                        {% for cat in categories %}
+                                        <option value="{{ cat }}">{{ cat }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-4">
+                                    <label class="form-label">Kinh nghiệm nhân viên</label>
+                                    <select class="form-select" id="tenure" required>
+                                        {% for t in tenures %}
+                                        <option value="{{ t }}" {% if t == ">90" %}selected{% endif %}>{{ t }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Ca trực</label>
+                                    <select class="form-select" id="shift" required>
+                                        {% for s in shifts %}
+                                        <option value="{{ s }}" {% if s == "Morning" %}selected{% endif %}>{{ s }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Thời gian phản hồi (phút)</label>
+                                    <input type="number" class="form-control" id="response_time" min="0" max="1440" value="10" required>
+                                </div>
+                            </div>
+
+                            <div class="section-divider mt-4"><i class="fas fa-comment-dots me-2"></i> NHẬN XÉT CỦA KHÁCH HÀNG (tuỳ chọn)</div>
+                            <div class="mb-3">
+                                <textarea class="form-control" id="remarks" placeholder="Ví dụ: Very good service / Terrible delay worst experience... (để trống nếu không có)"></textarea>
+                                <div class="form-text">Hệ thống sẽ phân tích cảm xúc từ nhận xét để nâng cao độ chính xác dự đoán.</div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-predict" id="submitBtn">
+                                    <i class="fas fa-brain me-2"></i> Dự đoán Mức độ Hài lòng
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="resultCard" class="card result-card mt-4" style="display: none;">
+                    <div class="card-body p-4" id="resultBody"></div>
+                </div>
+
+                <div class="text-center mt-3 text-white-50" style="font-size: 0.85rem;">
+                    <p>Assignment 02 — App3: Customer Satisfaction Prediction (Tabular + NLP)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang phân tích...';
+
+            const payload = {
+                channel: document.getElementById('channel').value,
+                category: document.getElementById('category').value,
+                tenure: document.getElementById('tenure').value,
+                shift: document.getElementById('shift').value,
+                response_time: parseFloat(document.getElementById('response_time').value),
+                remarks: document.getElementById('remarks').value
+            };
+
+            try {
+                const resp = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) throw new Error('Server error');
+                const result = await resp.json();
+
+                const card = document.getElementById('resultCard');
+                card.style.display = 'block';
+
+                const isSatisfied = result.label === 'Satisfied';
+                card.className = 'card result-card mt-4 ' + (isSatisfied ? 'result-satisfied' : 'result-at-risk');
+
+                document.getElementById('resultBody').innerHTML = `
+                    <div class="text-center">
+                        <div class="result-icon mb-2">${isSatisfied ? '😊' : '⚠️'}</div>
+                        <h4 class="fw-bold ${isSatisfied ? 'text-success' : 'text-danger'}">
+                            ${isSatisfied ? 'Khách hàng HÀI LÒNG' : 'CẢNH BÁO: Nguy cơ KHÔNG HÀI LÒNG'}
+                        </h4>
+                        <p class="mb-3">Độ tin cậy: <strong>${result.confidence}%</strong></p>
+                        <div class="row g-2 justify-content-center">
+                            <div class="col-auto">
+                                <span class="badge bg-success fs-6 p-2">
+                                    <i class="fas fa-smile me-1"></i> Hài lòng: ${result.probability_satisfied}%
+                                </span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge bg-danger fs-6 p-2">
+                                    <i class="fas fa-frown me-1"></i> Rủi ro: ${result.probability_at_risk}%
+                                </span>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-muted"><small>Model: ${result.model_used}</small></p>
+                    </div>`;
+            } catch (error) {
+                document.getElementById('resultCard').style.display = 'block';
+                document.getElementById('resultCard').className = 'card result-card mt-4 result-at-risk';
+                document.getElementById('resultBody').innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p class="fw-bold">Lỗi: ${error.message}</p>
+                    </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-brain me-2"></i> Dự đoán Mức độ Hài lòng';
+            }
+        });
+    </script>
+</body>
+</html>
